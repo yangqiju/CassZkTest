@@ -20,6 +20,7 @@ package org.apache.zookeeper.recipes.lock;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.test.ClientBase;
 import org.junit.After;
@@ -37,10 +38,11 @@ public class WriteLockTest extends ClientBase {
     private boolean restartServer = true;
     private boolean workAroundClosingLastZNodeFails = true;
     private boolean killLeader = true;
+	private String host_port = "192.168.3.167:2181";
 
     @Test
     public void testRun() throws Exception {
-        runTest(3);
+        runTest(4);
     }
 
     class LockCallback implements LockListener {
@@ -56,7 +58,14 @@ public class WriteLockTest extends ClientBase {
     protected void runTest(int count) throws Exception {
         nodes = new WriteLock[count];
         for (int i = 0; i < count; i++) {
-            ZooKeeper keeper = createClient();
+//        	ZooKeeper keeper = createClient();
+        	Watcher wh=new Watcher(){
+				public void process(org.apache.zookeeper.WatchedEvent event)
+				{
+					System.out.println("Watcher process::"+event.toString());
+				}
+			};
+            ZooKeeper keeper = new ZooKeeper(host_port, 20000, wh);//TODO
             WriteLock leader = new WriteLock(keeper, dir, null);
             leader.setLockListener(new LockCallback());
             nodes[i] = leader;

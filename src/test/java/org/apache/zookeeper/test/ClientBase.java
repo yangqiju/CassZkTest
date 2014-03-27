@@ -73,6 +73,7 @@ public abstract class ClientBase extends ZKTestCase {
 
 //    protected String hostPort = "127.0.0.1:" + PortAssignment.unique();
     protected String hostPort = "192.168.3.167:2181";
+    
     protected int maxCnxns = 0;
     protected ServerCnxnFactory serverFactory = null;
     protected File tmpDir = null;
@@ -194,7 +195,7 @@ public abstract class ClientBase extends ZKTestCase {
             }
             if (allClients != null) {
                 allClients.add(zk);
-                JMXEnv.ensureAll(getHexSessionId(zk.getSessionId()));
+//                JMXEnv.ensureAll(getHexSessionId(zk.getSessionId()));
             } else {
                 // test done - close the zk, not needed
                 zk.close();
