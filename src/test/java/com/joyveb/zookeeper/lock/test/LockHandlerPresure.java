@@ -1,5 +1,6 @@
 package com.joyveb.zookeeper.lock.test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -9,19 +10,27 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.recipes.lock.WriteLock;
 import org.junit.Test;
-public class LockPresure {
 
-	protected String dir = "/" + getClass().getName();
+public class LockHandlerPresure {
+
+	protected static String dir = "/org.apache.zookeeper.recipes.lock.WriteLockTest";
 	private String host167 = "192.168.3.167:2181";
+	private String host168 = "192.168.3.168:2181";
+	private String host205 = "192.168.3.205:2181";
+	private String host207 = "192.168.3.207:2181";
+	private int timeout = 5000;
 	public AtomicLong num = new AtomicLong();
+	public AtomicLong count = new AtomicLong();
+	
 	@Test
-	public void test() throws InterruptedException {
-		int threadnum = 100;
+	public void test() throws InterruptedException, IOException {
+		int threadnum = 30;
+		LockHandler lockHandler = new LockHandler(host167,host168,host205,host207);
 		for(int i=0;i<threadnum;i++){
-			LockThread thread167 = new LockThread(host167,dir);
+			LockThread thread167 = new LockThread(lockHandler);
 			thread167.start();
 		}
-		int timeSeconde = 100;
+		int timeSeconde = 1000;
 		int sleepTime = 10;
 		int time = 0;
 		while(true){
@@ -36,20 +45,24 @@ public class LockPresure {
 	}
 	
 	class LockThread extends Thread {
-		private String hostPort;
-		private String lockKey;
-		public LockThread(String host_port,String lockKey) {
-			this.hostPort = host_port;
-			this.lockKey = lockKey;
+		private LockHandler lockHandler;
+		public LockThread(LockHandler lockHandler ) {
+			this.lockHandler = lockHandler;
 		}
 		public void run() {
 			try {
-				ZooKeeper keeper = new ZooKeeper(hostPort, 5000, null);
-				WriteLock leader = new WriteLock(keeper, lockKey, null);
-				while (true) {
-					if (leader.lock()) {
-						leader.unlock();
-						num.incrementAndGet();
+				while(true){
+					ZooKeeper keeper = new ZooKeeper(host168, timeout, null);
+					WriteLock lock = new WriteLock(keeper, "/key", null);
+//					WriteLock lock =lockHandler.getLock("key");
+					System.out.println(lock);
+					System.out.println(count.addAndGet(1));
+					while (true) {
+						if (lock.lock()) {
+							lock.unlock();
+							num.incrementAndGet();
+							break;
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -58,8 +71,9 @@ public class LockPresure {
 		}
 	}
 	
-	private String  getLockKey(){
+	private static String  getLockKey(){
 		return keys.get(random.nextInt(keys.size()));
+//		return dir;
 	}
 	
 	private static List<String> keys = new ArrayList<>();
@@ -75,5 +89,4 @@ public class LockPresure {
 			}
 		}
 	}
-	
 }

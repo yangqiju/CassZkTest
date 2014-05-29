@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 
-sourceCompatibility = 1.5
+sourceCompatibility = 1.7
 version = '1.0'
 jar {
     manifest {
@@ -15,9 +15,20 @@ repositories {
 
 dependencies {
 	compile 'org.apache.zookeeper:zookeeper:3.4.6'
-	compile 'org.mockito:mockito-all:1.9.5'
-            
 	
+	compile 'org.apache.curator:curator-recipes:2.4.2'
+	compile 'org.apache.curator:curator-framework:2.4.2'
+	compile 'org.apache.curator:curator-test:2.4.2'
+	compile 'org.apache.curator:curator-client:2.4.2'
+	
+	compile 'org.mockito:mockito-all:1.9.5'
+	compile "org.apache.commons:commons-lang3:3.1"
+	compile 'com.datastax.cassandra:cassandra-driver-core:2.0.2'
+	
+	compile   'org.projectlombok:lombok:1.12.2'
+	compile 'org.testng:testng:6.8.8'
+	
+	testCompile 'org.springframework:spring-test:4.0.5.RELEASE'
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
@@ -31,5 +42,19 @@ uploadArchives {
        flatDir {
            dirs 'repos'
        }
+    }
+}
+
+sourceSets {
+    main {
+        java {
+			srcDir 'src/main/java'
+			srcDir 'src/test/java'
+			srcDir 'src/curator/java'
+        }
+        resources {
+            srcDir 'src/main/resources'
+			srcDir 'src/test/resources'
+        }
     }
 }

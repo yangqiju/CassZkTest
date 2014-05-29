@@ -66,18 +66,15 @@ public class LockTest {
 					if(leader.lock()){
 						dumpNodes(leader);
 						System.out.println();
-						System.out.println(name+"::»ñµÃËø..´¦Àí..");
 						TimeUnit.SECONDS.sleep(1);
 						leader.unlock();
 //						dumpNodes(leader);
 						latch.countDown();
-						System.out.println();
-						System.out.println(name+"::»ñµÃËø..´¦Àí..Íê³É..");
 						leader.close();
 						break;
 					}else{
 //						System.out.print(".");
-//						System.out.println(name+"::Ã»ÓÐ»ñµÃËø..µÈ´ý");
+//						System.out.println(name+"::Ã»ï¿½Ð»ï¿½ï¿½ï¿½ï¿½..ï¿½È´ï¿½");
 //						latch.await(3, TimeUnit.MILLISECONDS);
 					}
 				}
