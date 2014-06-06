@@ -1,13 +1,12 @@
 package com.joyveb.zookeeper.lock.test;
-import java.util.List;
+import java.util.UUID;
 
-import com.datastax.driver.core.BatchStatement;
 import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.SimpleStatement;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.Batch;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 /**  
@@ -21,17 +20,18 @@ import com.datastax.driver.core.querybuilder.Select;
  */
 public class CassandraTest {
 	private static final String CLUSTER_NAME = "Test Cluster";
-	private static final String[] CONTACTPOINT = {"192.168.3.167","192.168.3.168"} ;
+	private static final String[] CONTACTPOINT = {"192.168.3.197"} ;
 	private static final String KEYSPACE = "lottery";
-	private static final String TABLE = "test";
+	private static final String TABLE = "t_core_vo";
 	public static void main(String[] args) {
 		Cluster cluster = Cluster.builder().withClusterName(CLUSTER_NAME).addContactPoints(CONTACTPOINT).build();
 		try{
 			Session session = cluster.connect(KEYSPACE);
 			System.out.println("connected");
-			select(session);
-			update(session);
-			select(session);
+//			select(session);
+//			update(session);
+//			select(session);
+			batch(session);
 		}finally{
 			cluster.close();
 			System.out.println("end");
@@ -51,4 +51,20 @@ public class CassandraTest {
 		System.out.println(update.toString());
 		session.execute(update);
 	}
+	
+	public static void batch(Session session){
+		 long start = System.currentTimeMillis();
+		 for(int n = 0;n<100;n++){
+			 Batch batch = QueryBuilder.batch();
+			 for(int i=0;i<30000 ;i++){
+				 String caskey = UUID.randomUUID().toString()+System.currentTimeMillis();
+				 String insert =  String.format("INSERT INTO t_core_vo (ltype, period , merchantid , messageid , orderno , caskey    , mobile ) VALUES ( 'QGLOTO','2012001','888888','MESS1111','ORD11','%s','180');", caskey);
+				 SimpleStatement statement = new SimpleStatement(insert); 
+				 batch.add(statement);
+			 }
+			 session.execute(batch);
+		 }
+		 System.out.println("batch end::"+(System.currentTimeMillis()-start));
+	}
+	
 }

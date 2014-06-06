@@ -1,4 +1,4 @@
-package com.joyveb.curator.lock.test;
+package com.joyveb.curator.example.test;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;

@@ -1,4 +1,4 @@
-package com.joyveb.curator.lock.test;
+package com.joyveb.curator.example.test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,15 +8,13 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.atomic.AtomicValue;
-import org.apache.curator.framework.recipes.atomic.DistributedAtomicLong;
 import org.apache.curator.framework.recipes.locks.InterProcessMutex;
 import org.apache.curator.retry.RetryOneTime;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.recipes.lock.WriteLock;
 import org.junit.Test;
 
-public class DistributeAtomicLongPresure {
+public class MutexLockPresure {
 
 	protected static String dir = "/org.apache.zookeeper.recipes.lock.WriteLockTest";
 	private String host167 = "192.168.3.167:2181";
@@ -24,26 +22,26 @@ public class DistributeAtomicLongPresure {
 	private String host205 = "192.168.3.205:2181";
 	private String host207 = "192.168.3.207:2181";
 	private int timeout = 5000;
-	public AtomicLong successNum = new AtomicLong();
-	public AtomicLong faildNum = new AtomicLong();
+	public AtomicLong num = new AtomicLong();
+	private int byteSize = 1024;
 	
 	@Test
 	public void test() throws InterruptedException {
+		
 		String connectString = "192.168.3.167";
 		final CuratorFramework client = CuratorFrameworkFactory.newClient(connectString, new RetryOneTime(1));
 		client.start();
-		
-		int threadnum = 30;
+		InterProcessMutex lock = new InterProcessMutex(client, dir);
+		int threadnum = 100;
 		for(int i=0;i<threadnum;i++){
-			LockThread thread167 = new LockThread(host167,client);
+			LockThread thread167 = new LockThread(host167,client,lock);
 			thread167.start();
-//			LockThread thread168 = new LockThread(host168);
+//			LockThread thread168 = new LockThread(host168,client);
 //			thread168.start();
-//			LockThread thread205 = new LockThread(host205);
+//			LockThread thread205 = new LockThread(host205,client);
 //			thread205.start();
-//			LockThread thread207 = new LockThread(host207);
+//			LockThread thread207 = new LockThread(host207,client);
 //			thread207.start();
-			
 		}
 		int timeSeconde = 1000;
 		int sleepTime = 10;
@@ -51,34 +49,32 @@ public class DistributeAtomicLongPresure {
 		while(true){
 			TimeUnit.SECONDS.sleep(sleepTime);
 			time = time + sleepTime;
-			System.out.println("Thread["+threadnum+"]"+"time["+time+"] successCount["+successNum.get()+"] faildNum["+faildNum.get()+"] TPS["+(successNum.get()/time)+"]");
+			System.out.println("Thread["+threadnum*4+"]"+"time["+time+"] count["+num.get()+"] TPS["+(num.get()/time)+"]");
 			if(time>=timeSeconde){
 				break;
 			}
 		}
-//		System.out.println("Thread["+threadnum+"]"+"time["+timeSeconde+"] count["+num.get()+"] TPS["+(num.get()/timeSeconde)+"]");
 	}
 	
 	class LockThread extends Thread {
 		private String hostPort;
-		private  CuratorFramework client ;
-		public LockThread(String host_port, CuratorFramework client ) {
+		private CuratorFramework client;
+		private InterProcessMutex lock;
+		public LockThread(String host_port,CuratorFramework client,InterProcessMutex lock) {
 			this.hostPort = host_port;
 			this.client = client;
+			this.lock = lock;
 		}
 		public void run() {
 			try {
 //				String connectString = "192.168.3.167";
-//				final CuratorFramework client = CuratorFrameworkFactory.newClient(connectString, new RetryOneTime(1));
+//				final CuratorFramework client = CuratorFrameworkFactory.newClient(hostPort, new RetryOneTime(1));
 //				client.start();
 				while (true) {
-					DistributedAtomicLong dal = new DistributedAtomicLong(client,"/counter", new RetryOneTime(1));
-					AtomicValue<Long> result = dal.add(10L);
-					if(result.succeeded()){
-						successNum.incrementAndGet();
-					}else{
-						faildNum.incrementAndGet();
-					}
+//					InterProcessMutex lock = new InterProcessMutex(client, dir);
+					lock.acquire();
+					lock.release();
+					num.incrementAndGet();
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
